@@ -8,7 +8,7 @@ An intelligent home thermostat that automatically increases its heating level wh
 Members:
 - Mehmet Ali Kurnaz,  
 - Efe Demir,  
-- Oskar Przybil,  
+- Oskar Przybyl,  
 - Yardiel Omar Lopez Estevez.
 
 
