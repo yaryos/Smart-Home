@@ -1,26 +1,41 @@
 import random
 import time
 import json
+import os
+from datetime import datetime
 from paho.mqtt import client as mqtt
+from azure.storage.blob import BlobServiceClient
 
-# MQTT broker details (Docker Mosquitto)
+# -------------------------------
+#  AZURE STORAGE CONFIG
+# -------------------------------
+
+# Load connection string from environment (App Service or local .env)
+connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+
+# Create client for Azure Blob Storage
+blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+
+# CHANGE this to your real container name (Azure → Storage Account → Containers)
+container_name = "DefaultEndpointsProtocol=https;AccountName=oskartest123;AccountKey=KONiNsLeELthIEO8ZQ6I+kxzIv1LSoQ7/0RIbTGxlzrK3xeqnSslqgsTa8dA/LASbTe2dBHyvRDy+ASttawkIw==;EndpointSuffix=core.windows.net"
+container_client = blob_service_client.get_container_client(container_name)
+
+# -------------------------------
+#  MQTT CONFIG
+# -------------------------------
+
 device_id = "Thermostat_device_01"
 mqtt_hub_hostname = "172.161.150.169"
 mqtt_hub_port = 1883
 
-# Thermostat parameters
-target_temperature = 24.0        # Desired room temperature
-current_temperature = 20.0       # Initial room temperature
-outside_temperature = 15.0       # Simulated outside temperature
-tolerance = 0.5                  # Temperature tolerance for switching heating/cooling
-humidity = 50.0                   # Initial humidity
-pressure = 1012.0                 # Initial pressure
-
-# MQTT topic
+# Topics
 publish_topic = f"devices/{device_id}/messages/events/"
 command_topic = f"devices/{device_id}/commands"
 
-# Callback functions
+# -------------------------------
+#  CALLBACK FUNCTIONS
+# -------------------------------
+
 def on_connect(client, userdata, flags, rc):
     print(f"Device connected with result code: {rc}")
     client.subscribe(command_topic)
@@ -45,7 +60,21 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Failed to process command: {e}")
 
-# Initialize MQTT client
+# -------------------------------
+#  THERMOSTAT SIMULATION LOGIC
+# -------------------------------
+
+target_temperature = 24.0
+current_temperature = 20.0
+outside_temperature = 15.0
+tolerance = 0.5
+humidity = 50.0
+pressure = 1012.0
+
+# -------------------------------
+#  MQTT INIT
+# -------------------------------
+
 client = mqtt.Client(client_id=device_id, protocol=mqtt.MQTTv311)
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
@@ -55,37 +84,33 @@ client.on_message = on_message
 
 print("Connecting to MQTT broker...")
 client.connect(mqtt_hub_hostname, mqtt_hub_port)
-client.loop_start()  # Start background thread for MQTT
+client.loop_start()
 
 print(f"Connected. Publishing to topic: {publish_topic}")
 
-# Main loop: simulate thermostat
+# -------------------------------
+#  MAIN LOOP
+# -------------------------------
 while True:
-    # Heating/cooling logic
     heating_on = False
     cooling_on = False
 
     if current_temperature < target_temperature - tolerance:
         heating_on = True
+        current_temperature += 0.5
     elif current_temperature > target_temperature + tolerance:
         cooling_on = True
-
-    # Update current_temperature gradually
-    if heating_on:
-        current_temperature += 0.5
-    elif cooling_on:
         current_temperature -= 0.5
     else:
-        # Move slowly toward outside temperature
         current_temperature += (outside_temperature - current_temperature) * 0.1
 
-    # Simulate small humidity and pressure variations
     humidity += random.uniform(-0.5, 0.5)
-    humidity = max(20.0, min(80.0, humidity))  # clamp to realistic values
+    humidity = max(20.0, min(80.0, humidity))
+
     pressure += random.uniform(-1, 1)
     pressure = max(900.0, min(1100.0, pressure))
 
-    # Prepare payload
+    # Telemetry payload
     payload = {
         "device_id": device_id,
         "current_temperature": round(current_temperature, 2),
@@ -98,7 +123,23 @@ while True:
     }
 
     message = json.dumps(payload)
-    client.publish(publish_topic, message, qos=1)
-    print(f"Message sent: {message}")
 
-    time.sleep(5)  # wait 5 seconds before next reading
+    # -------------------------------
+    #  MQTT PUBLISH
+    # -------------------------------
+    client.publish(publish_topic, message, qos=1)
+    print(f"MQTT message sent: {message}")
+
+    # -------------------------------
+    #  SAVE TO AZURE BLOB STORAGE
+    # -------------------------------
+    blob_name = f"{device_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    container_client.upload_blob(
+        name=blob_name,
+        data=message,
+        overwrite=True
+    )
+    print(f"Saved telemetry to Azure Blob: {blob_name}")
+
+    time.sleep(5)
+
