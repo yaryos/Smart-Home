@@ -73,4 +73,6 @@ jobs:
         with:
           app-name: 'thermostatproject'
           slot-name: 'Production'
+          package: api-server
+
           
