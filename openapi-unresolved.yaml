@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Smart Thermostat IoT API
+  description: REST API for managing smart thermostats, customers, and temperature data
+  version: 1.0.0
+
+servers:
+  - url: https://api.smarthome.local
+
+paths:
+  /devices:
+    get:
+      summary: Get all registered devices
+      responses:
+        '200':
+          description: List of devices
+
+  /devices/{deviceId}/telemetry:
+    post:
+      summary: Send temperature data
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                temperature:
+                  type: number
+                humidity:
+                  type: number
+      responses:
+        '200':
+          description: Telemetry received
+
+  /devices/{deviceId}/config:
+    get:
+      summary: Get device configuration
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Configuration returned
+
+    put:
+      summary: Update device configuration
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetTemperature:
+                  type: number
+                mode:
+                  type: string
+      responses:
+        '200':
+          description: Configuration updated
