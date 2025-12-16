@@ -13,9 +13,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -23,7 +23,8 @@ jobs:
         python-version: '3.10'
 
     - name: Install dependencies
-      run: pip install -r api-server/requirements.txt
+      run: |
+        pip install -r api-server/requirements.txt
 
     - name: Upload deployment artifact
       uses: actions/upload-artifact@v4
@@ -31,32 +32,26 @@ jobs:
         name: python-app
         path: api-server/
 
-deploy:
-  runs-on: ubuntu-latest
-  needs: build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
 
-  steps:
-  - name: Download artifact
-    uses: actions/download-artifact@v4
-    with:
-      name: python-app
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: python-app
 
-  - name: Login to Azure
-    uses: azure/login@v2
-    with:
-      client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F3BDDDA58DDF492383D726ADDBDF9E62 }}
-      tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56CB0AA2202249F9AFCDF9DB093D8316 }}
-      subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7DA6CEE8F254445E947F594026064DEA }}
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F3BDDDA58DDF492383D726ADDBDF9E62 }}
+        tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56CB0AA2202249F9AFCDF9DB093D8316 }}
+        subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7DA6CEE8F254445E947F594026064DEA }}
 
-  - name: Deploy to Azure Web App
-    uses: azure/webapps-deploy@v3
-    with:
-      app-name: thermostatproject
-      package: python-app
-      clean: true
-
- 
-
-
-
-
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: thermostatproject
+        package: python-app
+        clean: true
