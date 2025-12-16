@@ -1,21 +1,13 @@
-const API_URL = "https://thermostatproject-bndcdmebfqbteagf.switzerlandnorth-01.azurewebsites.net/devices/thermo-001/telemetry";
+// Example live data updater
+function updateTelemetry(t) {
+    document.getElementById("temp").textContent = t.temperature ?? "--";
+    document.getElementById("target").textContent = t.target ?? "--";
+    document.getElementById("hum").textContent = t.humidity ?? "--";
+    document.getElementById("press").textContent = t.pressure ?? "--";
 
-async function loadData() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+    document.getElementById("heat").textContent = t.heating ? "ON" : "OFF";
+    document.getElementById("cool").textContent = t.cooling ? "ON" : "OFF";
 
-        document.getElementById("temp").innerText   = data.current_temperature;
-        document.getElementById("target").innerText = data.target_temperature;
-        document.getElementById("hum").innerText    = data.humidity;
-        document.getElementById("press").innerText  = data.pressure;
-        document.getElementById("heat").innerText   = data.heating_on ? "ON" : "OFF";
-        document.getElementById("cool").innerText   = data.cooling_on ? "ON" : "OFF";
-    }
-    catch (err) {
-        console.error("Error loading telemetry:", err);
-    }
+    document.getElementById("heat-dot").className = "dot " + (t.heating ? "on" : "off");
+    document.getElementById("cool-dot").className = "dot " + (t.cooling ? "on" : "off");
 }
-
-setInterval(loadData, 3000);  // refresh every 3 seconds
-loadData();
