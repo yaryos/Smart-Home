@@ -1,8 +1,8 @@
 body {
-    font-family: "Inter", Arial, sans-serif;
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: #f2f2f2;
+    background: #efefef;
     text-align: center;
     color: #333;
 }
@@ -10,41 +10,39 @@ body {
 .title {
     margin-top: 40px;
     font-size: 32px;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 .card {
     width: 380px;
     margin: 40px auto;
     padding: 25px;
-    background: #ffffff;
+    background: white;
     border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
     text-align: left;
 }
 
 h2 {
     text-align: center;
-    color: #333;
 }
 
 .adjuster {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 15px 0;
     gap: 12px;
+    margin: 15px 0;
 }
 
 .adjuster button {
     width: 40px;
     height: 40px;
-    font-size: 24px;
-    border: none;
+    font-size: 22px;
     background: #ddd;
-    border-radius: 10px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .adjuster button:hover {
