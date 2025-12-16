@@ -17,12 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Create a ZIP package containing ONLY the api-server folder
+      # Create a ZIP package containing the contents of api-server (flat, no nested folder)
       - name: Create ZIP package
         run: |
           mkdir artifact
           cd api-server
-          zip -r ../artifact/app.zip .
+          zip -r ../artifact/app.zip * .[!.]*
 
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
@@ -41,7 +41,7 @@ jobs:
           name: python-app
           path: python-app
 
-      # Debug: Show files before deployment
+      # Debug listing so we can see the structure
       - name: List contents for debugging
         run: ls -R .
 
