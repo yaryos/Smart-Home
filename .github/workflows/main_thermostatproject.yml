@@ -17,14 +17,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Create the ZIP containing the api-server folder
+      # Create a ZIP package containing ONLY the api-server folder
       - name: Create ZIP package
         run: |
           mkdir artifact
           cd api-server
           zip -r ../artifact/app.zip .
 
-      # Upload the ZIP as the artifact
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
@@ -36,14 +35,16 @@ jobs:
     needs: build
 
     steps:
-      # Download ZIP into a folder named python-app/
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
           path: python-app
 
-      # Log in to Azure
+      # Debug: Show files before deployment
+      - name: List contents for debugging
+        run: ls -R .
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -51,7 +52,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56CB0AA2202249F9AFCDF9DB093D8316 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7DA6CEE8F254445E947F594026064DEA }}
 
-      # Deploy the ZIP to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
