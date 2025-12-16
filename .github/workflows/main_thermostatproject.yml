@@ -17,40 +17,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Create the ZIP containing the api-server folder
       - name: Create ZIP package
         run: |
+          mkdir artifact
           cd api-server
-          zip -r ../app.zip .
+          zip -r ../artifact/app.zip .
 
+      # Upload the ZIP as the artifact
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: app.zip
+          path: artifact/app.zip
 
   deploy:
-  runs-on: ubuntu-latest
-  needs: build
+    runs-on: ubuntu-latest
+    needs: build
 
-  steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: python-app
-        path: python-app
+    steps:
+      # Download ZIP into a folder named python-app/
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+          path: python-app
 
-    - name: Login to Azure
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F3BDDDA58DDF492383D726ADDBDF9E62 }}
-        tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56CB0AA2202249F9AFCDF9DB093D8316 }}
-        subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7DA6CEE8F254445E947F594026064DEA }}
+      # Log in to Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F3BDDDA58DDF492383D726ADDBDF9E62 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56CB0AA2202249F9AFCDF9DB093D8316 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7DA6CEE8F254445E947F594026064DEA }}
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: thermostatproject
-        package: python-app/app.zip
-        clean: true
-
-
+      # Deploy the ZIP to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: thermostatproject
+          package: python-app/app.zip
+          clean: true
